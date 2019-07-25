@@ -11,41 +11,38 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 )
 
 type Path = string
 
-func run(src *url.URL, tmp Path) error {
-	_, err := download(src, tmp)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func download(input *url.URL, tmp Path) (*url.URL, error) {
-	switch input.Scheme {
-	case "s3":
-		fallthrough
-	case "jar":
-		path, err := downloadFile(input, tmp)
-		if err != nil {
-			return nil, err
-		}
-		res := url.URL{Scheme: "file"}
-		res.Path = path
-		return &res, nil
-	default:
-		return input, nil
-	}
-}
+//func run(input *url.URL, tempDir Path) error {
+//	switch input.Scheme {
+//	case "http":
+//		fallthrough
+//	case "https":
+//	case "s3":
+//		fallthrough
+//	case "jar":
+//		path, err := downloadFile(input, tempDir)
+//		if err != nil {
+//			return err
+//		}
+//		res := url.URL{Scheme: "file"}
+//		res.Path = path
+//		return nil
+//	default:
+//		return nil
+//	}
+//}
 
 func downloadFile(input *url.URL, tempDir Path) (Path, error) {
 	switch input.Scheme {
 	case "s3":
-		// FIXME
-		return "", errors.New("S3 not supported")
-		//return downloadFromS3(input, tempDir);
+		return downloadFromS3(input, tempDir)
 	case "jar":
 		jarUri, err := jar.Parse(input.String())
 		if err != nil {
@@ -70,8 +67,10 @@ func downloadFile(input *url.URL, tempDir Path) (Path, error) {
 		fallthrough
 	case "https":
 		return downloadFromHttp(input, tempDir)
+	case "file":
+		return filepath.FromSlash(input.Path), nil
 	default:
-		log.Panic(errors.New(fmt.Sprintf("Unsupported scheme %s", input.Scheme)))
+		errors.New(fmt.Sprintf("Unsupported scheme %s", input.Scheme))
 	}
 	return "", nil
 }
@@ -116,35 +115,44 @@ func downloadFromHttp(in *url.URL, tempDir Path) (Path, error) {
 	dst := filepath.Join(tempDir, getName(in))
 	fmt.Printf("INFO: Download %s to %s", in, dst)
 
-	// Get the data
 	resp, err := http.Get(in.String())
 	if err != nil {
 		return dst, err
 	}
 	defer resp.Body.Close()
 
-	// Create the file
 	out, err := os.Create(dst)
 	if err != nil {
 		return dst, err
 	}
 	defer out.Close()
 
-	// Write the body to file
 	_, err = io.Copy(out, resp.Body)
 	return dst, err
 }
 
-//private Path downloadFromS3(in url.URL, tempDir Path) throws InterruptedException {
-//s3Uri AmazonS3url.URL = new AmazonS3url.URL(in);
-//var fileName String = getName(in);
-//var file Path = tempDir.resolve(fileName);
-//System.out.println(String.format("INFO: Download %s to %s", in, file));
-//var transfer Transfer = transferManager.download(s3Uri.getBucket(), s3Uri.getKey(), file.toFile());
-//transfer.waitForCompletion();
-//return file;
-//}
-//
+func downloadFromS3(in *url.URL, tempDir Path) (Path, error) {
+	dst := filepath.Join(tempDir, getName(in))
+	fmt.Printf("INFO: Download %s to %s", in, dst)
+	out, err := os.Create(dst)
+	if err != nil {
+		return "", errors.New(fmt.Sprintf("Failed to create destination %s for S3 download", dst))
+	}
+	defer out.Close()
+
+	sess := session.Must(session.NewSession())
+	downloader := s3manager.NewDownloader(sess)
+	_, err = downloader.Download(out, &s3.GetObjectInput{
+		Bucket: aws.String(in.Host),
+		Key:    aws.String(in.Path),
+	})
+	if err != nil {
+		return "", errors.New(fmt.Sprintf("Failed to download %s", in.String()))
+	}
+
+	return dst, nil
+}
+
 func getName(in *url.URL) string {
 	return filepath.Base(filepath.FromSlash(in.Path))
 }
@@ -165,7 +173,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err := run(src, tmp); err != nil {
+	if _, err := downloadFile(src, tmp); err != nil {
 		log.Fatal(err)
 		os.Exit(1)
 	}
