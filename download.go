@@ -1,10 +1,9 @@
-package main
+package kuhnuri
 
 import (
 	"archive/zip"
 	"errors"
 	"fmt"
-	"github.com/kuhnuri/jar"
 	"io"
 	"log"
 	"net/http"
@@ -44,7 +43,7 @@ func downloadFile(input *url.URL, tempDir Path) (Path, error) {
 	case "s3":
 		return downloadFromS3(input, tempDir)
 	case "jar":
-		jarUri, err := jar.Parse(input.String())
+		jarUri, err := Parse(input.String())
 		if err != nil {
 			return "", err
 		}

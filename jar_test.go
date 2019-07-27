@@ -1,4 +1,4 @@
-package jar
+package kuhnuri
 
 import (
 	"testing"
