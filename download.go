@@ -4,16 +4,15 @@ import (
 	"archive/zip"
 	"errors"
 	"fmt"
-	"io"
-	"log"
-	"net/http"
-	"net/url"
-	"os"
-	"path/filepath"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"io"
+	"net/http"
+	"net/url"
+	"os"
+	"path/filepath"
 )
 
 type Path = string
@@ -38,7 +37,7 @@ type Path = string
 //	}
 //}
 
-func downloadFile(input *url.URL, tempDir Path) (Path, error) {
+func DownloadFile(input *url.URL, tempDir Path) (Path, error) {
 	switch input.Scheme {
 	case "s3":
 		return downloadFromS3(input, tempDir)
@@ -47,7 +46,7 @@ func downloadFile(input *url.URL, tempDir Path) (Path, error) {
 		if err != nil {
 			return "", err
 		}
-		jarFile, err := downloadFile(&jarUri.Url, tempDir)
+		jarFile, err := DownloadFile(&jarUri.Url, tempDir)
 		if err != nil {
 			return "", err
 		}
@@ -156,24 +155,24 @@ func getName(in *url.URL) string {
 	return filepath.Base(filepath.FromSlash(in.Path))
 }
 
-func main() {
-	if len(os.Args) != 3 {
-		log.Fatal("Usage: dowload IN-URL OUT-PATH")
-		os.Exit(1)
-	}
-	src, err := url.Parse(os.Args[1])
-	if err != nil {
-		log.Fatal(err)
-		os.Exit(1)
-	}
-	tmp, err := filepath.Abs(filepath.Clean(os.Args[2]))
-	if err != nil {
-		log.Fatal(err)
-		os.Exit(1)
-	}
-
-	if _, err := downloadFile(src, tmp); err != nil {
-		log.Fatal(err)
-		os.Exit(1)
-	}
-}
+//func main() {
+//	if len(os.Args) != 3 {
+//		log.Fatal("Usage: dowload IN-URL OUT-PATH")
+//		os.Exit(1)
+//	}
+//	src, err := url.Parse(os.Args[1])
+//	if err != nil {
+//		log.Fatal(err)
+//		os.Exit(1)
+//	}
+//	tmp, err := filepath.Abs(filepath.Clean(os.Args[2]))
+//	if err != nil {
+//		log.Fatal(err)
+//		os.Exit(1)
+//	}
+//
+//	if _, err := downloadFile(src, tmp); err != nil {
+//		log.Fatal(err)
+//		os.Exit(1)
+//	}
+//}
