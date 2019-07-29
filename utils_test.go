@@ -47,7 +47,7 @@ func createDir(dir string) string {
 }
 
 func teardown(dir string) {
-	fmt.Printf("Shutdown %s", dir)
+	fmt.Printf("Shutdown %s\n", dir)
 	err := os.RemoveAll(dir)
 	if err != nil {
 		fmt.Errorf("Failed to clean %s\n", err)

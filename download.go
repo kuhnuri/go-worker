@@ -45,14 +45,14 @@ func DownloadFile(input *url.URL, tempDir Path) (Path, error) {
 	case "file":
 		return filepath.FromSlash(input.Path), nil
 	default:
-		errors.New(fmt.Sprintf("Unsupported scheme %s", input.Scheme))
+		errors.New(fmt.Sprintf("Unsupported scheme %s\n", input.Scheme))
 	}
 	return "", nil
 }
 
 func downloadFromHttp(in *url.URL, tempDir Path) (Path, error) {
 	dst := filepath.Join(tempDir, getName(in))
-	fmt.Printf("INFO: Download %s to %s", in, dst)
+	fmt.Printf("INFO: Download %s to %s\n", in, dst)
 
 	resp, err := http.Get(in.String())
 	if err != nil {
@@ -72,7 +72,7 @@ func downloadFromHttp(in *url.URL, tempDir Path) (Path, error) {
 
 func downloadFromS3(in *url.URL, tempDir Path) (Path, error) {
 	dst := filepath.Join(tempDir, getName(in))
-	fmt.Printf("INFO: Download %s to %s", in, dst)
+	fmt.Printf("INFO: Download %s to %s\n", in, dst)
 	out, err := Create(dst)
 	if err != nil {
 		return "", errors.New(fmt.Sprintf("Failed to create destination %s for S3 download", dst))

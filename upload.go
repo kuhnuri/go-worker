@@ -51,7 +51,7 @@ func UploadFile(outDirOrFile Path, output *url.URL) (error) {
 }
 
 func uploadFromHttp(tempFile Path, output *url.URL) error {
-	fmt.Printf("INFO: Upload %s to %s", tempFile, output)
+	fmt.Printf("INFO: Upload %s to %s\n", tempFile, output)
 
 	src, err := os.Open(tempFile)
 	if err != nil {
@@ -70,7 +70,7 @@ func uploadFromHttp(tempFile Path, output *url.URL) error {
 
 // TODO upload directory recursively
 func uploadFromS3(tempFile Path, output *url.URL) error {
-	fmt.Printf("INFO: Upload %s to %s", tempFile, output)
+	fmt.Printf("INFO: Upload %s to %s\n", tempFile, output)
 
 	src, err := os.Open(tempFile)
 	if err != nil {
