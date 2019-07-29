@@ -86,7 +86,7 @@ func uploadFromS3(tempFile Path, output *url.URL) error {
 		Body:   src,
 	})
 	if err != nil {
-		return errors.New(fmt.Sprintf("Failed to upload %s", output.String()))
+		return errors.New(fmt.Sprintf("Failed to upload %s: %s", output.String(), err.Error()))
 	}
 
 	return nil
