@@ -27,6 +27,9 @@ func Unzip(zipFile Path, tempDir Path) error {
 	defer r.Close()
 
 	for _, f := range r.File {
+		if f.FileInfo().IsDir() {
+			continue
+		}
 		file := filepath.Clean(filepath.ToSlash(filepath.Join(tempDir, f.Name)))
 		fmt.Printf("DEBUG: Copy %s to %s\n", f.Name, file)
 
