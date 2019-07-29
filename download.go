@@ -1,7 +1,6 @@
 package kuhnuri
 
 import (
-	"archive/zip"
 	"errors"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
@@ -14,28 +13,6 @@ import (
 	"os"
 	"path/filepath"
 )
-
-type Path = string
-
-//func run(input *url.URL, tempDir Path) error {
-//	switch input.Scheme {
-//	case "http":
-//		fallthrough
-//	case "https":
-//	case "s3":
-//		fallthrough
-//	case "jar":
-//		path, err := downloadFile(input, tempDir)
-//		if err != nil {
-//			return err
-//		}
-//		res := url.URL{Scheme: "file"}
-//		res.Path = path
-//		return nil
-//	default:
-//		return nil
-//	}
-//}
 
 func DownloadFile(input *url.URL, tempDir Path) (Path, error) {
 	switch input.Scheme {
@@ -50,7 +27,7 @@ func DownloadFile(input *url.URL, tempDir Path) (Path, error) {
 		if err != nil {
 			return "", err
 		}
-		err = unzip(jarFile, tempDir)
+		err = Unzip(jarFile, tempDir)
 		if err != nil {
 			return "", err
 		}
@@ -73,42 +50,6 @@ func DownloadFile(input *url.URL, tempDir Path) (Path, error) {
 	return "", nil
 }
 
-func unzip(zipFile Path, tempDir Path) error {
-	fmt.Printf("INFO: Unzip %s to %s\n", zipFile, tempDir)
-	r, err := zip.OpenReader(zipFile)
-	if err != nil {
-		return err
-		//log.Fatal(err)
-	}
-	defer r.Close()
-
-	for _, f := range r.File {
-		file := filepath.Clean(filepath.ToSlash(filepath.Join(tempDir, f.Name)))
-		fmt.Printf("DEBUG: Copy %s to %s\n", f.Name, file)
-
-		rc, err := f.Open()
-		if err != nil {
-			return err
-			//log.Fatal(err)
-		} else {
-			wc, err := os.Create(file)
-			if err != nil {
-				return err
-				//log.Fatal(err)
-			} else {
-				_, err = io.Copy(wc, rc)
-				if err != nil {
-					return err
-					//log.Fatal(err)
-				}
-			}
-			wc.Close()
-		}
-		rc.Close()
-	}
-	return nil
-}
-
 func downloadFromHttp(in *url.URL, tempDir Path) (Path, error) {
 	dst := filepath.Join(tempDir, getName(in))
 	fmt.Printf("INFO: Download %s to %s", in, dst)
@@ -119,7 +60,7 @@ func downloadFromHttp(in *url.URL, tempDir Path) (Path, error) {
 	}
 	defer resp.Body.Close()
 
-	out, err := os.Create(dst)
+	out, err := Create(dst)
 	if err != nil {
 		return dst, err
 	}
@@ -132,7 +73,7 @@ func downloadFromHttp(in *url.URL, tempDir Path) (Path, error) {
 func downloadFromS3(in *url.URL, tempDir Path) (Path, error) {
 	dst := filepath.Join(tempDir, getName(in))
 	fmt.Printf("INFO: Download %s to %s", in, dst)
-	out, err := os.Create(dst)
+	out, err := Create(dst)
 	if err != nil {
 		return "", errors.New(fmt.Sprintf("Failed to create destination %s for S3 download", dst))
 	}
@@ -150,29 +91,3 @@ func downloadFromS3(in *url.URL, tempDir Path) (Path, error) {
 
 	return dst, nil
 }
-
-func getName(in *url.URL) string {
-	return filepath.Base(filepath.FromSlash(in.Path))
-}
-
-//func main() {
-//	if len(os.Args) != 3 {
-//		log.Fatal("Usage: dowload IN-URL OUT-PATH")
-//		os.Exit(1)
-//	}
-//	src, err := url.Parse(os.Args[1])
-//	if err != nil {
-//		log.Fatal(err)
-//		os.Exit(1)
-//	}
-//	tmp, err := filepath.Abs(filepath.Clean(os.Args[2]))
-//	if err != nil {
-//		log.Fatal(err)
-//		os.Exit(1)
-//	}
-//
-//	if _, err := downloadFile(src, tmp); err != nil {
-//		log.Fatal(err)
-//		os.Exit(1)
-//	}
-//}
