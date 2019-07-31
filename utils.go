@@ -80,7 +80,7 @@ func Zip(zipFile Path, tempDir Path) error {
 			return err
 		}
 		if fi.IsDir() {
-			return fmt.Errorf("ZIP must be a file: %s", path)
+			return nil
 		}
 		rel, err := filepath.Rel(tempDir, path)
 		if err != nil {
