@@ -85,3 +85,24 @@ func TestZip(t *testing.T) {
 	}
 	teardown(base)
 }
+
+func TestWithExt(t *testing.T) {
+	tests := []struct {
+		src string
+		ext string
+		exp string
+	}{
+		{"/foo/bar.baz", ".qux", "/foo/bar.qux"},
+		{"/foo/bar.baz.foo", ".qux", "/foo/bar.baz.qux"},
+		{"/foo/bar.baz", ".baz", "/foo/bar.baz"},
+		{"/foo/bar.baz", "", "/foo/bar"},
+		{"/foo/bar.baz", "qux", "/foo/barqux"},
+		{"/foo/bar", ".qux", "/foo/bar.qux"},
+	}
+	for i, test := range tests {
+		act := WithExt(test.src, test.ext)
+		if act != test.exp {
+			t.Fatalf("[%d] Expected %s, actual %s", i, test.exp, act)
+		}
+	}
+}

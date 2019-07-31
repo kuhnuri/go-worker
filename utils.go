@@ -16,6 +16,11 @@ func getName(in *url.URL) string {
 	return filepath.Base(filepath.FromSlash(in.Path))
 }
 
+func WithExt(path Path, ext string) Path {
+	from := filepath.Ext(path)
+	return path[0:len(path)-len(from)] + ext
+}
+
 func Unzip(zipFile Path, tempDir Path) error {
 	fmt.Printf("INFO: Unzip %s to %s\n", zipFile, tempDir)
 	r, err := zip.OpenReader(zipFile)
