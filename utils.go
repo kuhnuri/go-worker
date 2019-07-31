@@ -3,7 +3,6 @@ package kuhnuri
 import (
 	"archive/zip"
 	"fmt"
-	"github.com/pkg/errors"
 	"io"
 	"log"
 	"net/url"
@@ -21,8 +20,7 @@ func Unzip(zipFile Path, tempDir Path) error {
 	fmt.Printf("INFO: Unzip %s to %s\n", zipFile, tempDir)
 	r, err := zip.OpenReader(zipFile)
 	if err != nil {
-		return err
-		//log.Fatal(err)
+		return fmt.Errorf("Failed to open ZIP file reader: %v", err)
 	}
 	defer r.Close()
 
@@ -35,18 +33,15 @@ func Unzip(zipFile Path, tempDir Path) error {
 
 		rc, err := f.Open()
 		if err != nil {
-			return err
-			//log.Fatal(err)
+			return fmt.Errorf("Failed to open ZIP entry: %v", err)
 		} else {
 			wc, err := Create(file)
 			if err != nil {
-				return err
-				//log.Fatal(err)
+				return fmt.Errorf("Failed to open ZIP extract writer: %v", err)
 			} else {
 				_, err = io.Copy(wc, rc)
 				if err != nil {
-					return err
-					//log.Fatal(err)
+					return fmt.Errorf("Failed to copy ZIP entry to outputy: %v", err)
 				}
 			}
 			wc.Close()
@@ -62,7 +57,7 @@ func Create(file string) (*os.File, error) {
 	if os.IsNotExist(err) {
 		err := os.MkdirAll(dir, os.ModePerm)
 		if err != nil {
-			errors.New(fmt.Sprintf("Failed to create directory %s: %s", dir, err.Error()))
+			fmt.Errorf("Failed to create directory %s: %v", dir, err)
 		}
 	}
 	return os.Create(file)
@@ -85,7 +80,7 @@ func Zip(zipFile Path, tempDir Path) error {
 			return err
 		}
 		if fi.IsDir() {
-			return nil
+			return fmt.Errorf("ZIP must be a file: %s", path)
 		}
 		rel, err := filepath.Rel(tempDir, path)
 		if err != nil {
@@ -94,15 +89,15 @@ func Zip(zipFile Path, tempDir Path) error {
 		fmt.Printf("DEBUG: Read %s\n", path)
 		src, err := os.Open(path)
 		if err != nil {
-			return err
+			return fmt.Errorf("Failed to open file reader: %v", err)
 		} else {
 			dst, err := w.Create(filepath.ToSlash(rel))
 			if err != nil {
-				return err
+				return fmt.Errorf("Failed to open ZIP entry writer: %v", err)
 			} else {
 				_, err = io.Copy(dst, src)
 				if err != nil {
-					return err
+					return fmt.Errorf("Failed to copy file to ZIP entry: %v", err)
 				}
 			}
 			src.Close()

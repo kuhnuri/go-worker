@@ -1,7 +1,6 @@
 package kuhnuri
 
 import (
-	"errors"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -45,7 +44,7 @@ func UploadFile(outDirOrFile Path, output *url.URL) (error) {
 	case "file":
 		return nil
 	default:
-		errors.New(fmt.Sprintf("Unsupported scheme %s", output.Scheme))
+		fmt.Errorf("Unsupported scheme %s", output.Scheme)
 	}
 	return nil
 }
@@ -86,7 +85,7 @@ func uploadFromS3(tempFile Path, output *url.URL) error {
 		Body:   src,
 	})
 	if err != nil {
-		return errors.New(fmt.Sprintf("Failed to upload %s: %s", output.String(), err.Error()))
+		return fmt.Errorf("Failed to upload %s: %v", output.String(), err)
 	}
 
 	return nil

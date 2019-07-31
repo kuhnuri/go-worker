@@ -1,7 +1,6 @@
 package kuhnuri
 
 import (
-	"errors"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -27,11 +26,12 @@ func DownloadFile(input *url.URL, tempDir Path) (Path, error) {
 		if err != nil {
 			return "", err
 		}
-		err = Unzip(jarFile, tempDir)
-		if err != nil {
+		if err = Unzip(jarFile, tempDir); err != nil {
 			return "", err
 		}
-		os.Remove(jarFile)
+		if err := os.Remove(jarFile); err != nil {
+			fmt.Printf("ERROR: Failed to remove %s: %s\n", jarFile, err.Error())
+		}
 
 		if jarUri.Entry != "" {
 			return filepath.Clean(filepath.Join(tempDir, jarUri.Entry)), nil
@@ -45,7 +45,7 @@ func DownloadFile(input *url.URL, tempDir Path) (Path, error) {
 	case "file":
 		return filepath.FromSlash(input.Path), nil
 	default:
-		errors.New(fmt.Sprintf("Unsupported scheme %s\n", input.Scheme))
+		fmt.Errorf("Unsupported scheme %s", input.Scheme)
 	}
 	return "", nil
 }
@@ -75,7 +75,7 @@ func downloadFromS3(in *url.URL, tempDir Path) (Path, error) {
 	fmt.Printf("INFO: Download %s to %s\n", in, dst)
 	out, err := Create(dst)
 	if err != nil {
-		return "", errors.New(fmt.Sprintf("Failed to create destination %s for S3 download", dst))
+		return "", fmt.Errorf("Failed to create destination %s for S3 download: %s", dst, err)
 	}
 	defer out.Close()
 
@@ -86,7 +86,7 @@ func downloadFromS3(in *url.URL, tempDir Path) (Path, error) {
 		Key:    aws.String(in.Path),
 	})
 	if err != nil {
-		return "", errors.New(fmt.Sprintf("Failed to download %s", in.String()))
+		return "", fmt.Errorf("Failed to download %s: %v", in.String(), err)
 	}
 
 	return dst, nil
