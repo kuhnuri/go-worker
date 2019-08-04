@@ -56,14 +56,19 @@ func Unzip(zipFile Path, tempDir Path) error {
 	return nil
 }
 
+func MkDirs(dir string) error {
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		if err := os.MkdirAll(dir, os.ModePerm); err != nil {
+			return fmt.Errorf("Failed to create directory %s: %v", dir, err)
+		}
+	}
+	return nil
+}
+
 func Create(file string) (*os.File, error) {
 	dir := filepath.Dir(file)
-	_, err := os.Stat(dir)
-	if os.IsNotExist(err) {
-		err := os.MkdirAll(dir, os.ModePerm)
-		if err != nil {
-			fmt.Errorf("Failed to create directory %s: %v", dir, err)
-		}
+	if err := MkDirs(dir); err != nil {
+		return nil, err
 	}
 	return os.Create(file)
 }
