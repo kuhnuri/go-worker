@@ -22,7 +22,7 @@ func WithExt(path Path, ext string) Path {
 }
 
 func Unzip(zipFile Path, tempDir Path) error {
-	fmt.Printf("INFO: Unzip %s to %s\n", zipFile, tempDir)
+	log.Printf("INFO: Unzip %s to %s\n", zipFile, tempDir)
 	r, err := zip.OpenReader(zipFile)
 	if err != nil {
 		return fmt.Errorf("Failed to open ZIP file reader: %v", err)
@@ -34,7 +34,7 @@ func Unzip(zipFile Path, tempDir Path) error {
 			continue
 		}
 		file := filepath.Clean(filepath.ToSlash(filepath.Join(tempDir, f.Name)))
-		fmt.Printf("DEBUG: Copy %s to %s\n", f.Name, file)
+		log.Printf("DEBUG: Copy %s to %s\n", f.Name, file)
 
 		rc, err := f.Open()
 		if err != nil {
@@ -74,7 +74,7 @@ func Create(file string) (*os.File, error) {
 }
 
 func Zip(zipFile Path, tempDir Path) error {
-	fmt.Printf("INFO: Zip %s to %s\n", tempDir, zipFile)
+	log.Printf("INFO: Zip %s to %s\n", tempDir, zipFile)
 	out, err := Create(zipFile)
 	if err != nil {
 		return err
@@ -96,7 +96,7 @@ func Zip(zipFile Path, tempDir Path) error {
 		if err != nil {
 			log.Fatalf("ERROR: Failed to relativize %s\n", path)
 		}
-		fmt.Printf("DEBUG: Read %s\n", path)
+		log.Printf("DEBUG: Read %s\n", path)
 		src, err := os.Open(path)
 		if err != nil {
 			return fmt.Errorf("Failed to open file reader: %v", err)

@@ -6,6 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -44,13 +45,13 @@ func UploadFile(outDirOrFile Path, output *url.URL) (error) {
 	case "file":
 		return nil
 	default:
-		fmt.Errorf("Unsupported scheme %s", output.Scheme)
+		log.Errorf("Unsupported scheme %s", output.Scheme)
 	}
 	return nil
 }
 
 func uploadFromHttp(tempFile Path, output *url.URL) error {
-	fmt.Printf("INFO: Upload %s to %s\n", tempFile, output)
+	log.Printf("INFO: Upload %s to %s\n", tempFile, output)
 
 	src, err := os.Open(tempFile)
 	if err != nil {
@@ -69,7 +70,7 @@ func uploadFromHttp(tempFile Path, output *url.URL) error {
 
 // TODO upload directory recursively
 func uploadFromS3(tempFile Path, output *url.URL) error {
-	fmt.Printf("INFO: Upload %s to %s\n", tempFile, output)
+	log.Printf("INFO: Upload %s to %s\n", tempFile, output)
 
 	src, err := os.Open(tempFile)
 	if err != nil {

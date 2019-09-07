@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -30,7 +31,7 @@ func DownloadFile(input *url.URL, tempDir Path) (Path, error) {
 			return "", err
 		}
 		if err := os.Remove(jarFile); err != nil {
-			fmt.Printf("ERROR: Failed to remove %s: %s\n", jarFile, err.Error())
+			log.Printf("ERROR: Failed to remove %s: %s\n", jarFile, err.Error())
 		}
 
 		if jarUri.Entry != "" {
@@ -45,14 +46,14 @@ func DownloadFile(input *url.URL, tempDir Path) (Path, error) {
 	case "file":
 		return filepath.FromSlash(input.Path), nil
 	default:
-		fmt.Errorf("Unsupported scheme %s", input.Scheme)
+		return "", fmt.Errorf("Unsupported scheme %s", input.Scheme)
 	}
 	return "", nil
 }
 
 func downloadFromHttp(in *url.URL, tempDir Path) (Path, error) {
 	dst := filepath.Join(tempDir, getName(in))
-	fmt.Printf("INFO: Download %s to %s\n", in, dst)
+	log.Printf("INFO: Download %s to %s\n", in, dst)
 
 	resp, err := http.Get(in.String())
 	if err != nil {
@@ -72,7 +73,7 @@ func downloadFromHttp(in *url.URL, tempDir Path) (Path, error) {
 
 func downloadFromS3(in *url.URL, tempDir Path) (Path, error) {
 	dst := filepath.Join(tempDir, getName(in))
-	fmt.Printf("INFO: Download %s to %s\n", in, dst)
+	log.Printf("INFO: Download %s to %s\n", in, dst)
 	out, err := Create(dst)
 	if err != nil {
 		return "", fmt.Errorf("Failed to create destination %s for S3 download: %s", dst, err)
