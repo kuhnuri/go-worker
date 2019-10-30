@@ -45,7 +45,7 @@ func UploadFile(outDirOrFile Path, output *url.URL) (error) {
 	case "file":
 		return nil
 	default:
-		log.Errorf("Unsupported scheme %s", output.Scheme)
+		return fmt.Errorf("Unsupported scheme %s", output.Scheme)
 	}
 	return nil
 }
